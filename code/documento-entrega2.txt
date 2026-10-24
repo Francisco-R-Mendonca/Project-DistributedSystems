@@ -1,0 +1,65 @@
+# DOCUMENTO QUE ACOMPANHA A 2ª ENTREGA DO PROJETO DE SD
+
+1) Quais dos seguintes requisitos foram corretamente resolvidos?
+Abaixo de cada requisito, respondam: "Sim" ou "Não" ou "Sim mas com erros: [enumerar sucintamente os erros]"
+
+- Estender o sistema para permitir nós replicados: Sim
+
+- Difusão baseada em blocos (e não transações individuais): Sim
+
+- Variantes não-bloqueantes dos comandos: Sim
+
+- Funcionalidade de atrasar, no nó, a execução de cada pedido: Sim
+
+- Suporte ao lançamento de novos nós a qualquer ponto no tempo: Sim
+
+- Tolerância a falhas silenciosas dos nós: Sim
+
+
+2) Descrevam sucintamente as principais alterações que o grupo aplicou a cada componente indicada abaixo (máx. 800 palavras)
+Idealmente, componham uma lista de itens (cada um iniciado por um hífen, tal como a listagem dos requisitos apresentada acima).
+Refiram ainda se houve alterações aos argumentos de linha de comando dos executáveis, quais foram e qual a sua justificação.
+
+Aos .proto:
+    - Adicionámos a classe Block (common.proto)
+    - Adicionámos o parâmetro transactionId na request do lado do cliente (common.proto)
+    - Adicionámos SyncBlockchainRequest e SyncBlockchainResponse (node-sequencer.proto)
+    - Adicionámos a DeliverBlockRequest e DeliverBlockResponse
+    - Adicionámos uma flag (bool) para evitar a repetição das transações no BroadcastResponse e retirámos o sequencer number (node-sequencer.proto)
+     
+Ao programa do Cliente:
+    - Adicionámos as variantes não-bloqueantes dos comandos (c, e, t)
+    - Adicionámos metadados ao cabeçalho do Node, com a informação do tempo dde atraso de um pedido
+    - Se existir uma suspeita de falha do Nó (timeout expirado) o Cliente faz o pedido ao próximo Node
+    - Se existir efetivamente uma falha do Nó (CTRL+C por exemplo) o Cliente faz o pedido ao próximo Node
+
+Ao programa do Nó:
+    - Função responsável pela sincronização do NodeState com o sequencer assim que o Node é inicializado, antes de aceitar pedidos do Cliente
+    - Thread ao NodeService responsável por pedir novos blocos e aplicar as transações na ordem sequencial
+    - BlockChain local no NodeState
+    - Classe NodeDelayInterceptor 
+    - CompletableFuture MapList em quem adicionamos todas as transações como pending quando recebemos o pedido do cliente e completamos quando 
+    a transação com o mesmo transactionId é aplicada na Thread startBlockListener desbloqueando a resposta ao cliente
+    - Catch da exceção CompletionException e adicionámos a função handleTransactionFailure para situações em que a transação aplicada falha (por exemplo: criação dupla da mesma carteira)
+
+Ao programa do Sequenciador:
+    - Lista global de blocos
+    - Função que com recurso a um ScheduledExecutorService, verificaa cada T segundos se o timeout de fecho de blocos já foi ultrapassado.
+    - Função de fecho do bloco. Utilizada quando existem mais de N transações ou T segundos foram ultrapassados. Não cria blocos se não existirem transações pendentes
+    - Função que "informa" os blocos que contém na lista ao Node
+
+3) Na vossa solução, as transações recebidas pelo sequenciador levam algum identificador?
+Se sim, expliquem brevemente o formato e como é gerado o identificador (máx. 100 palavras)
+
+Sim. Adicionamos um UUID (randomUUID()) que é passado nos requests. 
+
+
+4) Como foi frisado na primeira aula teórica, não é aceitável o uso de GenAI/Code Copilots para gerar código usado diretamente no projeto.
+Tendo isto em conta, respondam brevemente às seguintes 3 perguntas:
+
+i) Os membros do grupo conseguem explicar o código submetido se tal for perguntado na discussão do projeto (feita sem recurso a AI)? Sim
+
+ii) Os membros do grupo conseguem defender todas as decisões de desenho e implementação se tal for perguntado na discussão do projeto (feita sem recurso a AI)? Sim
+
+iii) Usaram alguma(s) ferramenta(s) de AI? Se sim, para que uso? Sim, para debug.
+

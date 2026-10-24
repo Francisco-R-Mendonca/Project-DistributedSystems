@@ -1,0 +1,52 @@
+# DOCUMENTO QUE ACOMPANHA A 3ª ENTREGA DO PROJETO DE SD
+
+1) Quais dos seguintes requisitos foram corretamente resolvidos?
+Abaixo de cada requisito, respondam: "Sim" ou "Não" ou "Sim mas com erros: [enumerar sucintamente os erros]"
+
+- Suporta a execução/resposta a pedidos de transferência antes da transação correspondente ser entregue pelo sequenciador [C.1]: Sim
+
+- As transações são assinadas digitalmente pelo utilizador que as invocou e as respetivas assinaturas são verificadas antes de cada transação ser executada nas réplicas [C.2]: Sim
+
+- A blockchain gerada pelo sequenciador é assinada digitalmente e as assinaturas correspondentes são verificadas pelos nós que recebem cada bloco [C.2]: Sim
+
+
+2) Descrevam sucintamente as principais alterações que o grupo aplicou a cada componente indicada abaixo (máx. 800 palavras)
+Idealmente, componham uma lista de itens (cada um iniciado por um hífen, tal como a listagem dos requisitos apresentada acima).
+Refiram ainda se houve alterações aos argumentos de linha de comando dos executáveis, quais foram e qual a sua justificação.
+
+Aos .proto:
+- Adicionámos o parâmetro signature nos request de create, delete e transfer (common.proto)
+- Adicionámos o parâmetro signature no block(common.proto)
+
+Ao programa do Cliente:
+
+- Adicionámos assinatura digital nos requests antes do envio, utilizando a chave privada do utilizador
+- Adicionámos conjunto de chaves privadas para respetivos users para assinar pedidos
+
+Ao programa do Nó:
+
+- Adicionámos lista de utilizadores e respetivas organizações, tal como lógica para verificar se o user do pedido pertence á organização do node
+- Adicionámos flag na wallet para indicar eliminação pendente, permitindo impedir operações sobre carteiras que estão em processo de remoção
+- Adicionámos conjunto de chaves públicas dos users e do sequencer para validar assinaturas
+- Adicionámos métodos de validação das transações e blocos recebidos através das chaves e assinaturas
+
+Ao programa do Sequenciador:
+
+- Adicionámos assinatura digital dos blocos antes do envio, utilizando a chave privada do sequencer
+- Adicionámos chave privada para assinar blocos
+
+
+3) Na vossa solução para o requisito da C.1, em quais condições uma transferência **NÃO** é executada pelo nó (que recebeu o pedido respetivo) antes da transação ser enviada ao sequenciador? (máx. 100 palavras)
+
+Existem duas condições em que a transferência não é executada imediatamente: quando envolve carteiras de organizações diferentes ou quando o pedido é inválido, sendo nesse caso rejeitado imediatamente.
+
+
+4) Como foi frisado na primeira aula teórica, não é aceitável o uso de GenAI/Code Copilots para gerar código usado diretamente no projeto.
+Tendo isto em conta, respondam brevemente às seguintes 3 perguntas:
+
+i) Os membros do grupo conseguem explicar o código submetido se tal for perguntado na discussão do projeto (feita sem recurso a AI)? Sim
+
+ii) Os membros do grupo conseguem defender todas as decisões de desenho e implementação se tal for perguntado na discussão do projeto (feita sem recurso a AI)? Sim
+
+iii) Usaram alguma(s) ferramenta(s) de AI? Se sim, para que uso? Sim, para debug.
+
